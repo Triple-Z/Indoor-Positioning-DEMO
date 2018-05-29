@@ -1,11 +1,9 @@
-package com.nuaa.bluetoothlocation;
+package cn.triplez.demo.indoorpositioning;
 
-import android.bluetooth.BluetoothDevice;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PointF;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.View;
@@ -73,8 +71,9 @@ public class MainActivity extends AppCompatActivity {
         // 先判断三个设备是否都已经准备就绪
         for (int i = 0; i < 2; i++) {
             if (!bluetoothReadyStates[i]) {
-                Toast.makeText(getApplicationContext(), "Cannot get " + i + " beacon's RSSI.\n Get location FAILED!",
-                        Toast.LENGTH_SHORT).show();
+                int number = i + 1;
+                Toast.makeText(getApplicationContext(), "Cannot get No." + number + " beacon's RSSI.\n Get location FAILED!",
+                        Toast.LENGTH_LONG).show();
                 return;
             }
         }

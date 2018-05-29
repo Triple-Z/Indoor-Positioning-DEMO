@@ -1,6 +1,4 @@
-package com.nuaa.bluetoothlocation;
-
-import java.util.List;
+package cn.triplez.demo.indoorpositioning;
 
 public class MathTool {
     private final static double RSSI_TO_DISTANCE_A = 65;
