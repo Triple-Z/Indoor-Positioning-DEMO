@@ -354,13 +354,13 @@
             android:textColor="#ffffff" />
 
 
-        <Button
-            android:id="@+id/calculate_button"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:backgroundTint="@color/colorAccent"
-            android:text="@string/calculate"
-            android:layout_weight="1" />
+        <!--<Button-->
+            <!--android:id="@+id/calculate_button"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:backgroundTint="@color/colorAccent"-->
+            <!--android:text="@string/calculate"-->
+            <!--android:layout_weight="1" />-->
 
     </LinearLayout>
 

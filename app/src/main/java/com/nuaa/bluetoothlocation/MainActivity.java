@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static java.lang.StrictMath.max;
+
 public class MainActivity extends AppCompatActivity {
     // 允许的蓝牙设备MAC及编号
     private HashMap<String, Integer> allowBluetoothDeviceMacs = new HashMap<String, Integer>(){{
@@ -61,13 +63,157 @@ public class MainActivity extends AppCompatActivity {
     private EditText roomX;
     private EditText roomY;
     private Button refreshButton;
-    private Button calculateButton;
+//    private Button calculateButton;
     private TextView location;
     private CoordinateAxisChart coordinateAxisChart;
 
 
 
+    private void calculate() {
+        // 先判断三个设备是否都已经准备就绪
+        for (int i = 0; i < 2; i++) {
+            if (!bluetoothReadyStates[i]) {
+                Toast.makeText(getApplicationContext(), "Cannot get " + i + " beacon's RSSI.\n Get location FAILED!",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
 
+        // 如果全部准备就绪了，则开始计算
+        // 定义三个设备的坐标
+        MathTool.Point device1Point = new MathTool.Point(0, 0);
+        MathTool.Point device2Point = new MathTool.Point(Double.parseDouble(roomX.getText().toString()), 0);
+        MathTool.Point device3Point = new MathTool.Point(0, Double.parseDouble(roomY.getText().toString()));
+
+        // 将三个rssi都转换成实际的距离
+        double [] distances = new double[3];
+        for (int i = 0; i < 3; i++) {
+            distances[i] = MathTool.rssiToDistance(bluetoothDevices.get(i).getRssi()) * Math.cos(Math.toRadians(45));
+            Log.d("RSSI to distance : ", Double.toString(distances[i]));
+        }
+
+        // 抽象圆
+        MathTool.Circle circle1 = new MathTool.Circle(
+                new MathTool.Point(device1Point.x, device1Point.y),
+                distances[0]);
+        MathTool.Circle circle2 = new MathTool.Circle(
+                new MathTool.Point(device2Point.x, device2Point.y),
+                distances[1]
+        );
+        MathTool.Circle circle3 = new MathTool.Circle(
+                new MathTool.Point(device3Point.x, device3Point.y),
+                distances[2]
+        );
+        // 尝试进行运算
+        while (true) {
+            // 先看三个圆之间是否各自都有交点
+            // 如果1、2两个圆之间没有交点
+            if (!MathTool.isTwoCircleIntersect(circle1, circle2)) {
+                // 尝试增加某个圆的半径，谁半径更大增加谁的
+                if (circle1.r > circle2.r) {
+                    circle1.r += TRY_DISTANCE_STEP;
+                } else {
+                    circle2.r += TRY_DISTANCE_STEP;
+                }
+                continue;
+            }
+            // 如果1、3两个圆之间没有交点
+            if (!MathTool.isTwoCircleIntersect(circle1, circle3)) {
+                // 尝试增加半径
+                // 如果c3的半径比两者之中任意一个都小
+                if (circle3.r < circle1.r && circle3.r < circle2.r) {
+                    circle1.r += TRY_DISTANCE_STEP;
+                    circle2.r += TRY_DISTANCE_STEP;
+                } else {
+                    circle3.r += TRY_DISTANCE_STEP;
+                }
+                continue;
+            }
+            // 如果2、3两个原之间没有交点
+            if (!MathTool.isTwoCircleIntersect(circle2, circle3)) {
+                // 尝试增加半径
+                // 如果c3的半径比两者之中任意一个都小
+                if (circle3.r < circle1.r && circle3.r < circle2.r) {
+                    circle1.r += TRY_DISTANCE_STEP;
+                    circle2.r += TRY_DISTANCE_STEP;
+                } else {
+                    circle3.r += TRY_DISTANCE_STEP;
+                }
+                continue;
+            }
+
+            // 等尝试到三个圆都有交点的时候，求出各自两个圆之间的交点
+            MathTool.PointVector2 temp1 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle1, circle2);
+            MathTool.PointVector2 temp2 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle2, circle3);
+            MathTool.PointVector2 temp3 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle3, circle1);
+            // 1、2两圆的交点取y > 0 的那个点
+            MathTool.Point resultPoint1 = temp1.p1.y > 0 ?
+                    new MathTool.Point(temp1.p1.x, temp1.p1.y) :
+                    new MathTool.Point(temp1.p2.x, temp1.p2.y);
+            // 2、3两圆的交点取两者的均值
+            MathTool.Point resultPoint2 = new MathTool.Point(
+                    (temp2.p1.x + temp2.p2.x) / 2,
+                    (temp2.p1.y + temp2.p2.y) / 2
+            );
+            // 3、1两圆的交点取x > 0的那个点
+            MathTool.Point resultPoint3 = temp3.p1.x > 0 ?
+                    new MathTool.Point(temp3.p1.x, temp3.p1.y) :
+                    new MathTool.Point(temp3.p2.x, temp3.p2.y);
+
+            // 求出三个点的中心点
+            MathTool.Point resultPoint = MathTool.getCenterOfThreePoint(
+                    resultPoint1,
+                    resultPoint2,
+                    resultPoint3
+            );
+
+            // 更新结果显示
+            Toast.makeText(getApplicationContext(), "Get the location!", Toast.LENGTH_SHORT).show();
+
+            location.setText(resultPoint.toString());
+
+            float x_float = (float)resultPoint.x;
+            float y_float = (float)resultPoint.y;
+
+            ChartConfig config = new ChartConfig();
+
+
+            // the max value of the axis 坐标轴的最大值
+//            config.setMax(10);
+            try {
+                config.setMax(max(Integer.parseInt(roomX.getText().toString()), Integer.parseInt(roomY.getText().toString())));
+            } catch (Exception e) {
+                Toast.makeText(getApplicationContext(), "Invalid x or y range !", Toast.LENGTH_SHORT).show();
+            }
+
+            /*
+                The precision of tangent lines of the points on the function line
+                recommended value: 1-10
+                函数图像上的点的切线的精度 推荐值：1-10
+            */
+            config.setPrecision(1);
+
+            /*
+                The x axis will be equally separated to some segment points according to segmentSize
+                and will connect these points when drawing the function.
+                将x轴分割成segmentSize个点，成像时会将这些点连接起来。
+            */
+            config.setSegmentSize(50);
+
+            coordinateAxisChart.setConfig(config);
+
+            coordinateAxisChart.reset();
+            coordinateAxisChart.invalidate();
+
+            SinglePoint point = new SinglePoint(new PointF(x_float, y_float));
+            point.setPointColor(Color.RED);
+            coordinateAxisChart.addPoint(point);
+            coordinateAxisChart.invalidate();
+
+            // 跳出循环
+            break;
+        }
+    }
 
 
     private void scan() {
@@ -77,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
         BleManager.getInstance()
                 .initScanRule(new BleScanRuleConfig.Builder()
                         .setAutoConnect(false)
-                        .setScanTimeOut(10000)
+                        .setScanTimeOut(5000)
                         .build()
                 );
         // 打开蓝牙
@@ -86,12 +232,15 @@ public class MainActivity extends AppCompatActivity {
         BleManager.getInstance().scan(new BleScanCallback() {
             @Override
             public void onScanFinished(List<BleDevice> scanResultList) {
-                Toast.makeText(getApplicationContext(), "扫描完成!", Toast.LENGTH_SHORT)
-                        .show();
+//                Toast.makeText(getApplicationContext(), "Finish Scanning!", Toast.LENGTH_SHORT)
+//                        .show();
+                calculate();
             }
 
             @Override
-            public void onScanStarted(boolean success) {}
+            public void onScanStarted(boolean success) {
+                Toast.makeText(getApplicationContext(), "Locating...", Toast.LENGTH_SHORT).show();
+            }
 
             @Override
             public void onScanning(BleDevice bleDevice) {
@@ -149,31 +298,11 @@ public class MainActivity extends AppCompatActivity {
         roomX = findViewById(R.id.room_x);
         roomY = findViewById(R.id.room_y);
         refreshButton = findViewById(R.id.refresh_button);
-        calculateButton = findViewById(R.id.calculate_button);
+//        calculateButton = findViewById(R.id.calculate_button);
         location = findViewById(R.id.location);
 
         coordinateAxisChart = (CoordinateAxisChart)findViewById(R.id.coordinateAxisChart);
-        ChartConfig config = new ChartConfig();
 
-
-        // the max value of the axis 坐标轴的最大值
-        config.setMax(3);
-
-    /*
-        The precision of tangent lines of the points on the function line
-        recommended value: 1-10
-        函数图像上的点的切线的精度 推荐值：1-10
-    */
-        config.setPrecision(1);
-
-    /*
-        The x axis will be equally separated to some segment points according to segmentSize
-        and will connect these points when drawing the function.
-        将x轴分割成segmentSize个点，成像时会将这些点连接起来。
-    */
-        config.setSegmentSize(50);
-
-        coordinateAxisChart.setConfig(config);
 
 
         // 设置回调
@@ -198,126 +327,128 @@ public class MainActivity extends AppCompatActivity {
                 scan();
             }
         });
+
+
         // 计算按钮回调
-        calculateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // 先判断三个设备是否都已经准备就绪
-                for (int i = 0; i < 2; i++) {
-                    if (!bluetoothReadyStates[i]) {
-                        Toast.makeText(getApplicationContext(), "设备" + i + "未就绪，无法启动计算",
-                                Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                }
-
-                // 如果全部准备就绪了，则开始计算
-                // 定义三个设备的坐标
-                MathTool.Point device1Point = new MathTool.Point(0, 0);
-                MathTool.Point device2Point = new MathTool.Point(Double.parseDouble(roomX.getText().toString()), 0);
-                MathTool.Point device3Point = new MathTool.Point(0, Double.parseDouble(roomY.getText().toString()));
-
-                // 将三个rssi都转换成实际的距离
-                double [] distances = new double[3];
-                for (int i = 0; i < 3; i++) {
-                    distances[i] = MathTool.rssiToDistance(bluetoothDevices.get(i).getRssi()) * Math.cos(Math.toRadians(45));
-                    Log.d("RSSI to distance : ", Double.toString(distances[i]));
-                }
-
-                // 抽象圆
-                MathTool.Circle circle1 = new MathTool.Circle(
-                        new MathTool.Point(device1Point.x, device1Point.y),
-                        distances[0]);
-                MathTool.Circle circle2 = new MathTool.Circle(
-                        new MathTool.Point(device2Point.x, device2Point.y),
-                        distances[1]
-                );
-                MathTool.Circle circle3 = new MathTool.Circle(
-                        new MathTool.Point(device3Point.x, device3Point.y),
-                        distances[2]
-                );
-                // 尝试进行运算
-                while (true) {
-                    // 先看三个圆之间是否各自都有交点
-                    // 如果1、2两个圆之间没有交点
-                    if (!MathTool.isTwoCircleIntersect(circle1, circle2)) {
-                        // 尝试增加某个圆的半径，谁半径更大增加谁的
-                        if (circle1.r > circle2.r) {
-                            circle1.r += TRY_DISTANCE_STEP;
-                        } else {
-                            circle2.r += TRY_DISTANCE_STEP;
-                        }
-                        continue;
-                    }
-                    // 如果1、3两个圆之间没有交点
-                    if (!MathTool.isTwoCircleIntersect(circle1, circle3)) {
-                        // 尝试增加半径
-                        // 如果c3的半径比两者之中任意一个都小
-                        if (circle3.r < circle1.r && circle3.r < circle2.r) {
-                            circle1.r += TRY_DISTANCE_STEP;
-                            circle2.r += TRY_DISTANCE_STEP;
-                        } else {
-                            circle3.r += TRY_DISTANCE_STEP;
-                        }
-                        continue;
-                    }
-                    // 如果2、3两个原之间没有交点
-                    if (!MathTool.isTwoCircleIntersect(circle2, circle3)) {
-                        // 尝试增加半径
-                        // 如果c3的半径比两者之中任意一个都小
-                        if (circle3.r < circle1.r && circle3.r < circle2.r) {
-                            circle1.r += TRY_DISTANCE_STEP;
-                            circle2.r += TRY_DISTANCE_STEP;
-                        } else {
-                            circle3.r += TRY_DISTANCE_STEP;
-                        }
-                        continue;
-                    }
-
-                    // 等尝试到三个圆都有交点的时候，求出各自两个圆之间的交点
-                    MathTool.PointVector2 temp1 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle1, circle2);
-                    MathTool.PointVector2 temp2 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle2, circle3);
-                    MathTool.PointVector2 temp3 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle3, circle1);
-                    // 1、2两圆的交点取y > 0 的那个点
-                    MathTool.Point resultPoint1 = temp1.p1.y > 0 ?
-                            new MathTool.Point(temp1.p1.x, temp1.p1.y) :
-                            new MathTool.Point(temp1.p2.x, temp1.p2.y);
-                    // 2、3两圆的交点取两者的均值
-                    MathTool.Point resultPoint2 = new MathTool.Point(
-                            (temp2.p1.x + temp2.p2.x) / 2,
-                            (temp2.p1.y + temp2.p2.y) / 2
-                    );
-                    // 3、1两圆的交点取x > 0的那个点
-                    MathTool.Point resultPoint3 = temp3.p1.x > 0 ?
-                            new MathTool.Point(temp3.p1.x, temp3.p1.y) :
-                            new MathTool.Point(temp3.p2.x, temp3.p2.y);
-
-                    // 求出三个点的中心点
-                    MathTool.Point resultPoint = MathTool.getCenterOfThreePoint(
-                            resultPoint1,
-                            resultPoint2,
-                            resultPoint3
-                    );
-
-                    // 更新结果显示
-                    location.setText(resultPoint.toString());
-
-                    float x_float = (float)resultPoint.x;
-                    float y_float = (float)resultPoint.y;
-
-                    coordinateAxisChart.reset();
-                    coordinateAxisChart.invalidate();
-
-                    SinglePoint point = new SinglePoint(new PointF(x_float, y_float));
-                    point.setPointColor(Color.RED);
-                    coordinateAxisChart.addPoint(point);
-                    coordinateAxisChart.invalidate();
-
-                    // 跳出循环
-                    break;
-                }
-            }
-        });
+//        calculateButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                // 先判断三个设备是否都已经准备就绪
+//                for (int i = 0; i < 2; i++) {
+//                    if (!bluetoothReadyStates[i]) {
+//                        Toast.makeText(getApplicationContext(), "设备" + i + "未就绪，无法启动计算",
+//                                Toast.LENGTH_SHORT).show();
+//                        return;
+//                    }
+//                }
+//
+//                // 如果全部准备就绪了，则开始计算
+//                // 定义三个设备的坐标
+//                MathTool.Point device1Point = new MathTool.Point(0, 0);
+//                MathTool.Point device2Point = new MathTool.Point(Double.parseDouble(roomX.getText().toString()), 0);
+//                MathTool.Point device3Point = new MathTool.Point(0, Double.parseDouble(roomY.getText().toString()));
+//
+//                // 将三个rssi都转换成实际的距离
+//                double [] distances = new double[3];
+//                for (int i = 0; i < 3; i++) {
+//                    distances[i] = MathTool.rssiToDistance(bluetoothDevices.get(i).getRssi()) * Math.cos(Math.toRadians(45));
+//                    Log.d("RSSI to distance : ", Double.toString(distances[i]));
+//                }
+//
+//                // 抽象圆
+//                MathTool.Circle circle1 = new MathTool.Circle(
+//                        new MathTool.Point(device1Point.x, device1Point.y),
+//                        distances[0]);
+//                MathTool.Circle circle2 = new MathTool.Circle(
+//                        new MathTool.Point(device2Point.x, device2Point.y),
+//                        distances[1]
+//                );
+//                MathTool.Circle circle3 = new MathTool.Circle(
+//                        new MathTool.Point(device3Point.x, device3Point.y),
+//                        distances[2]
+//                );
+//                // 尝试进行运算
+//                while (true) {
+//                    // 先看三个圆之间是否各自都有交点
+//                    // 如果1、2两个圆之间没有交点
+//                    if (!MathTool.isTwoCircleIntersect(circle1, circle2)) {
+//                        // 尝试增加某个圆的半径，谁半径更大增加谁的
+//                        if (circle1.r > circle2.r) {
+//                            circle1.r += TRY_DISTANCE_STEP;
+//                        } else {
+//                            circle2.r += TRY_DISTANCE_STEP;
+//                        }
+//                        continue;
+//                    }
+//                    // 如果1、3两个圆之间没有交点
+//                    if (!MathTool.isTwoCircleIntersect(circle1, circle3)) {
+//                        // 尝试增加半径
+//                        // 如果c3的半径比两者之中任意一个都小
+//                        if (circle3.r < circle1.r && circle3.r < circle2.r) {
+//                            circle1.r += TRY_DISTANCE_STEP;
+//                            circle2.r += TRY_DISTANCE_STEP;
+//                        } else {
+//                            circle3.r += TRY_DISTANCE_STEP;
+//                        }
+//                        continue;
+//                    }
+//                    // 如果2、3两个原之间没有交点
+//                    if (!MathTool.isTwoCircleIntersect(circle2, circle3)) {
+//                        // 尝试增加半径
+//                        // 如果c3的半径比两者之中任意一个都小
+//                        if (circle3.r < circle1.r && circle3.r < circle2.r) {
+//                            circle1.r += TRY_DISTANCE_STEP;
+//                            circle2.r += TRY_DISTANCE_STEP;
+//                        } else {
+//                            circle3.r += TRY_DISTANCE_STEP;
+//                        }
+//                        continue;
+//                    }
+//
+//                    // 等尝试到三个圆都有交点的时候，求出各自两个圆之间的交点
+//                    MathTool.PointVector2 temp1 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle1, circle2);
+//                    MathTool.PointVector2 temp2 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle2, circle3);
+//                    MathTool.PointVector2 temp3 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle3, circle1);
+//                    // 1、2两圆的交点取y > 0 的那个点
+//                    MathTool.Point resultPoint1 = temp1.p1.y > 0 ?
+//                            new MathTool.Point(temp1.p1.x, temp1.p1.y) :
+//                            new MathTool.Point(temp1.p2.x, temp1.p2.y);
+//                    // 2、3两圆的交点取两者的均值
+//                    MathTool.Point resultPoint2 = new MathTool.Point(
+//                            (temp2.p1.x + temp2.p2.x) / 2,
+//                            (temp2.p1.y + temp2.p2.y) / 2
+//                    );
+//                    // 3、1两圆的交点取x > 0的那个点
+//                    MathTool.Point resultPoint3 = temp3.p1.x > 0 ?
+//                            new MathTool.Point(temp3.p1.x, temp3.p1.y) :
+//                            new MathTool.Point(temp3.p2.x, temp3.p2.y);
+//
+//                    // 求出三个点的中心点
+//                    MathTool.Point resultPoint = MathTool.getCenterOfThreePoint(
+//                            resultPoint1,
+//                            resultPoint2,
+//                            resultPoint3
+//                    );
+//
+//                    // 更新结果显示
+//                    location.setText(resultPoint.toString());
+//
+//                    float x_float = (float)resultPoint.x;
+//                    float y_float = (float)resultPoint.y;
+//
+//                    coordinateAxisChart.reset();
+//                    coordinateAxisChart.invalidate();
+//
+//                    SinglePoint point = new SinglePoint(new PointF(x_float, y_float));
+//                    point.setPointColor(Color.RED);
+//                    coordinateAxisChart.addPoint(point);
+//                    coordinateAxisChart.invalidate();
+//
+//                    // 跳出循环
+//                    break;
+//                }
+//            }
+//        });
     }
 
     @Override
