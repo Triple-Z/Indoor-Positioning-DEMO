@@ -3,7 +3,7 @@ package com.nuaa.bluetoothlocation;
 import java.util.List;
 
 public class MathTool {
-    private final static double RSSI_TO_DISTANCE_A = 50;
+    private final static double RSSI_TO_DISTANCE_A = 65;
     private final static double RSSI_TO_DISTANCE_N = 4;
 
     public static class Point {

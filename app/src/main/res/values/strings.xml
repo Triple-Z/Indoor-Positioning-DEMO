@@ -1,12 +1,13 @@
 <resources>
     <string name="app_name">BluetoothLocation</string>
-    <string name="bleDevice1_tip">蓝牙设备1:</string>
-    <string name="bleDevice2_tip">蓝牙设备2:</string>
-    <string name="bleDevice3_tip">蓝牙设备3:</string>
-    <string name="rssi">rssi:</string>
-    <string name="refresh">刷新状态</string>
-    <string name="calculate">计算结果</string>
-    <string name="room_x_tip">房间x轴长度(m):</string>
-    <string name="room_y_tip">房间y轴长度(m):</string>
-    <string name="location_tip">您的位置:</string>
+    <!--<string name="bleDevice1_tip">蓝牙设备1:</string>-->
+    <!--<string name="bleDevice2_tip">蓝牙设备2:</string>-->
+    <!--<string name="bleDevice3_tip">蓝牙设备3:</string>-->
+    <!--<string name="rssi">rssi:</string>-->
+    <string name="refresh">Refresh</string>
+    <string name="calculate">Calculate</string>
+    <string name="room_x_tip">x range to : </string>
+    <string name="room_y_tip">y range to : </string>
+    <string name="location_tip">Current location: </string>
+    <string name="not_a_number">N/A</string>
 </resources>

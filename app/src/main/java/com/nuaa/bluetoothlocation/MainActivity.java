@@ -2,8 +2,11 @@ package com.nuaa.bluetoothlocation;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PointF;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +18,9 @@ import com.clj.fastble.BleManager;
 import com.clj.fastble.callback.BleScanCallback;
 import com.clj.fastble.data.BleDevice;
 import com.clj.fastble.scan.BleScanRuleConfig;
+import com.kiba.coordinateaxischart.ChartConfig;
+import com.kiba.coordinateaxischart.CoordinateAxisChart;
+import com.kiba.coordinateaxischart.SinglePoint;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,9 +30,10 @@ public class MainActivity extends AppCompatActivity {
     // 允许的蓝牙设备MAC及编号
     private HashMap<String, Integer> allowBluetoothDeviceMacs = new HashMap<String, Integer>(){{
         // 初始化允许的蓝牙设备
-        put("31:DD:8C:8B:DB:71", 0);
-        put("37:E5:69:B1:B1:CA", 1);
-        put("6A:51:F7:AF:44:5B", 2);
+//        put("1F:3F:B4:37:92:42", 0);
+        put("EC:F4:A0:9B:56:23", 0);
+        put("06:88:71:CD:AE:A7", 1);
+        put("06:41:18:56:D1:64", 2);
     }};
     // 蓝牙设备对象
     private ArrayList<BleDevice> bluetoothDevices = new ArrayList<BleDevice>() {{
@@ -40,17 +47,28 @@ public class MainActivity extends AppCompatActivity {
     // 尝试增加的距离步长
     private static final double TRY_DISTANCE_STEP = 0.01;
 
-    private TextView bleDevice1Ready;
+//    private TextView bleDevice1Ready;
+//    private TextView bleDevice2Ready;
+//    private TextView bleDevice3Ready;
+
+    private CardView bleCard1;
+    private CardView bleCard2;
+    private CardView bleCard3;
+
     private TextView bleDevice1Rssi;
-    private TextView bleDevice2Ready;
     private TextView bleDevice2Rssi;
-    private TextView bleDevice3Ready;
     private TextView bleDevice3Rssi;
     private EditText roomX;
     private EditText roomY;
     private Button refreshButton;
     private Button calculateButton;
     private TextView location;
+    private CoordinateAxisChart coordinateAxisChart;
+
+
+
+
+
 
     private void scan() {
         bluetoothDevices.clear();
@@ -92,15 +110,18 @@ public class MainActivity extends AppCompatActivity {
                         bluetoothReadyStates[index] = true;
                         switch (index) {
                             case 0:
-                                bleDevice1Ready.setText("就绪");
+//                                bleDevice1Ready.setText("就绪");
+                                bleCard1.setCardBackgroundColor(getResources().getColor(R.color.success));
                                 bleDevice1Rssi.setText(String.valueOf(bleDevice.getRssi()));
                                 break;
                             case 1:
-                                bleDevice2Ready.setText("就绪");
+//                                bleDevice2Ready.setText("就绪");
+                                bleCard2.setCardBackgroundColor(getResources().getColor(R.color.success));
                                 bleDevice2Rssi.setText(String.valueOf(bleDevice.getRssi()));
                                 break;
                             case 2:
-                                bleDevice3Ready.setText("就绪");
+//                                bleDevice3Ready.setText("就绪");
+                                bleCard3.setCardBackgroundColor(getResources().getColor(R.color.success));
                                 bleDevice3Rssi.setText(String.valueOf(bleDevice.getRssi()));
                                 break;
                             default:
@@ -114,17 +135,46 @@ public class MainActivity extends AppCompatActivity {
 
     private void bindComponent() {
         // 绑定所有组件
-        bleDevice1Ready = findViewById(R.id.bleDevice1_ready);
+//        bleDevice1Ready = findViewById(R.id.bleDevice1_ready);
+//        bleDevice2Ready = findViewById(R.id.bleDevice2_ready);
+//        bleDevice3Ready = findViewById(R.id.bleDevice3_ready);
+
+        bleCard1 = (CardView)findViewById(R.id.bleCard1);
+        bleCard2 = (CardView)findViewById(R.id.bleCard2);
+        bleCard3 = (CardView)findViewById(R.id.bleCard3);
+
         bleDevice1Rssi = findViewById(R.id.bleDevice1_rssi);
-        bleDevice2Ready = findViewById(R.id.bleDevice2_ready);
         bleDevice2Rssi = findViewById(R.id.bleDevice2_rssi);
-        bleDevice3Ready = findViewById(R.id.bleDevice3_ready);
         bleDevice3Rssi = findViewById(R.id.bleDevice3_rssi);
         roomX = findViewById(R.id.room_x);
         roomY = findViewById(R.id.room_y);
         refreshButton = findViewById(R.id.refresh_button);
         calculateButton = findViewById(R.id.calculate_button);
         location = findViewById(R.id.location);
+
+        coordinateAxisChart = (CoordinateAxisChart)findViewById(R.id.coordinateAxisChart);
+        ChartConfig config = new ChartConfig();
+
+
+        // the max value of the axis 坐标轴的最大值
+        config.setMax(3);
+
+    /*
+        The precision of tangent lines of the points on the function line
+        recommended value: 1-10
+        函数图像上的点的切线的精度 推荐值：1-10
+    */
+        config.setPrecision(1);
+
+    /*
+        The x axis will be equally separated to some segment points according to segmentSize
+        and will connect these points when drawing the function.
+        将x轴分割成segmentSize个点，成像时会将这些点连接起来。
+    */
+        config.setSegmentSize(50);
+
+        coordinateAxisChart.setConfig(config);
+
 
         // 设置回调
         // 刷新状态按钮回调
@@ -135,12 +185,15 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < 2; i++) {
                     bluetoothReadyStates[i] = false;
                 }
-                bleDevice1Ready.setText("未就绪");
-                bleDevice1Rssi.setText("0");
-                bleDevice2Ready.setText("未就绪");
-                bleDevice2Rssi.setText("0");
-                bleDevice3Ready.setText("未就绪");
-                bleDevice3Rssi.setText("0");
+//                bleDevice1Ready.setText("未就绪");
+                bleCard1.setCardBackgroundColor(getResources().getColor(R.color.error));
+                bleDevice1Rssi.setText("N/A");
+//                bleDevice2Ready.setText("未就绪");
+                bleCard2.setCardBackgroundColor(getResources().getColor(R.color.error));
+                bleDevice2Rssi.setText("N/A");
+//                bleDevice3Ready.setText("未就绪");
+                bleCard3.setCardBackgroundColor(getResources().getColor(R.color.error));
+                bleDevice3Rssi.setText("N/A");
                 // 开始一轮新的扫描
                 scan();
             }
@@ -168,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
                 double [] distances = new double[3];
                 for (int i = 0; i < 3; i++) {
                     distances[i] = MathTool.rssiToDistance(bluetoothDevices.get(i).getRssi()) * Math.cos(Math.toRadians(45));
+                    Log.d("RSSI to distance : ", Double.toString(distances[i]));
                 }
 
                 // 抽象圆
@@ -247,6 +301,17 @@ public class MainActivity extends AppCompatActivity {
 
                     // 更新结果显示
                     location.setText(resultPoint.toString());
+
+                    float x_float = (float)resultPoint.x;
+                    float y_float = (float)resultPoint.y;
+
+                    coordinateAxisChart.reset();
+                    coordinateAxisChart.invalidate();
+
+                    SinglePoint point = new SinglePoint(new PointF(x_float, y_float));
+                    point.setPointColor(Color.RED);
+                    coordinateAxisChart.addPoint(point);
+                    coordinateAxisChart.invalidate();
 
                     // 跳出循环
                     break;
