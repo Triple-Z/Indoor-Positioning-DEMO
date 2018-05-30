@@ -1,8 +1,10 @@
 package cn.triplez.demo.indoorpositioning;
 
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -30,8 +32,8 @@ public class MainActivity extends AppCompatActivity {
     // 允许的蓝牙设备MAC及编号
     private HashMap<String, Integer> allowBluetoothDeviceMacs = new HashMap<String, Integer>(){{
         // 初始化允许的蓝牙设备
-//        put("1F:3F:B4:37:92:42", 0);
-        put("EC:F4:A0:9B:56:23", 0);
+        put("1F:3F:B4:37:92:42", 0);
+//        put("EC:F4:A0:9B:56:23", 0);  // For test
         put("06:88:71:CD:AE:A7", 1);
         put("06:41:18:56:D1:64", 2);
     }};
@@ -64,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
 //    private Button calculateButton;
     private TextView location;
     private CoordinateAxisChart coordinateAxisChart;
+    private FloatingActionButton fab;
 
 
 
@@ -233,12 +236,14 @@ public class MainActivity extends AppCompatActivity {
             public void onScanFinished(List<BleDevice> scanResultList) {
 //                Toast.makeText(getApplicationContext(), "Finish Scanning!", Toast.LENGTH_SHORT)
 //                        .show();
+                fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ready)));
                 calculate();
             }
 
             @Override
             public void onScanStarted(boolean success) {
                 Toast.makeText(getApplicationContext(), "Locating...", Toast.LENGTH_SHORT).show();
+                fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.waiting)));
             }
 
             @Override
@@ -296,17 +301,40 @@ public class MainActivity extends AppCompatActivity {
         bleDevice3Rssi = findViewById(R.id.bleDevice3_rssi);
         roomX = findViewById(R.id.room_x);
         roomY = findViewById(R.id.room_y);
-        refreshButton = findViewById(R.id.refresh_button);
+//        refreshButton = findViewById(R.id.refresh_button);
 //        calculateButton = findViewById(R.id.calculate_button);
         location = findViewById(R.id.location);
 
         coordinateAxisChart = (CoordinateAxisChart)findViewById(R.id.coordinateAxisChart);
 
+        fab = (FloatingActionButton)findViewById(R.id.fab);
+
 
 
         // 设置回调
         // 刷新状态按钮回调
-        refreshButton.setOnClickListener(new View.OnClickListener() {
+//        refreshButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                // 更改显示状态为默认状态
+//                for (int i = 0; i < 2; i++) {
+//                    bluetoothReadyStates[i] = false;
+//                }
+////                bleDevice1Ready.setText("未就绪");
+//                bleCard1.setCardBackgroundColor(getResources().getColor(R.color.error));
+//                bleDevice1Rssi.setText("N/A");
+////                bleDevice2Ready.setText("未就绪");
+//                bleCard2.setCardBackgroundColor(getResources().getColor(R.color.error));
+//                bleDevice2Rssi.setText("N/A");
+////                bleDevice3Ready.setText("未就绪");
+//                bleCard3.setCardBackgroundColor(getResources().getColor(R.color.error));
+//                bleDevice3Rssi.setText("N/A");
+//                // 开始一轮新的扫描
+//                scan();
+//            }
+//        });
+
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // 更改显示状态为默认状态
@@ -454,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+//        setContentView(R.layout.material_main);
         // Ble初始化
         BleManager.getInstance()
                 .init(getApplication());
