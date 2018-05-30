@@ -1,5 +1,7 @@
 package cn.triplez.demo.indoorpositioning;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PointF;
@@ -7,6 +9,7 @@ import android.os.Bundle;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -291,6 +294,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void scan() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
+
         bluetoothDevices.clear();
         for (int i = 0; i < 3; i++) bluetoothDevices.add(null);
         // 配置扫描规则
@@ -560,6 +567,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+
 //        setContentView(R.layout.material_main);
         // Ble初始化
         BleManager.getInstance().init(getApplication());
