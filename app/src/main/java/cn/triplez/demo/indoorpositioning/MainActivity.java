@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static java.lang.Math.min;
 import static java.lang.StrictMath.max;
 
 public class MainActivity extends AppCompatActivity {
@@ -89,14 +90,36 @@ public class MainActivity extends AppCompatActivity {
 
         // 如果全部准备就绪了，则开始计算
         // 定义三个设备的坐标
-        MathTool.Point device1Point = new MathTool.Point(0, 0);
-        MathTool.Point device2Point = new MathTool.Point(Double.parseDouble(roomX.getText().toString()), 0);
-        MathTool.Point device3Point = new MathTool.Point(0, Double.parseDouble(roomY.getText().toString()));
+
+        MathTool.Point device1Point, device2Point, device3Point;
+
+        try {
+            device1Point = new MathTool.Point(0, 0);
+            device2Point = new MathTool.Point(Double.parseDouble(roomX.getText().toString()), 0);
+            device3Point = new MathTool.Point(0, Double.parseDouble(roomY.getText().toString()));
+        } catch (Exception e) {
+            if(snackbar != null) snackbar.dismiss();
+            snackbar.make(myCoordinatorLayout, "Invalid x or y range !", Snackbar.LENGTH_INDEFINITE).show();
+            return;
+        }
 
         // 将三个rssi都转换成实际的距离
         double [] distances = new double[3];
         for (int i = 0; i < 3; i++) {
-            distances[i] = MathTool.rssiToDistance(bluetoothDevices.get(i).getRssi()) * Math.cos(Math.toRadians(45));
+            switch (i) {
+//                case 0:
+//                    distances[i] = MathTool.rssiToDistance(bluetoothDevices.get(i).getRssi(), 3.3) * Math.cos(Math.toRadians(45));
+//                    break;
+//                case 1:
+//                    distances[i] = MathTool.rssiToDistance(bluetoothDevices.get(i).getRssi(), 3.3) * Math.cos(Math.toRadians(45));
+//                    break;
+//                case 2:
+//                    distances[i] = MathTool.rssiToDistance(bluetoothDevices.get(i).getRssi(), 2.7) * Math.cos(Math.toRadians(45));
+//                    break;
+                default:
+                    distances[i] = MathTool.rssiToDistance(bluetoothDevices.get(i).getRssi()) * Math.cos(Math.toRadians(45));
+                    break;
+            }
             Log.d("RSSI to distance : ", Double.toString(distances[i]));
         }
 
@@ -117,6 +140,9 @@ public class MainActivity extends AppCompatActivity {
             // 先看三个圆之间是否各自都有交点
             // 如果1、2两个圆之间没有交点
             if (!MathTool.isTwoCircleIntersect(circle1, circle2)) {
+//                if(snackbar != null) snackbar.dismiss();
+//                snackbar.make(myCoordinatorLayout, "Get location FAILED !", Snackbar.LENGTH_INDEFINITE).show();
+//                return;
                 // 尝试增加某个圆的半径，谁半径更大增加谁的
                 if (circle1.r > circle2.r) {
                     circle1.r += TRY_DISTANCE_STEP;
@@ -127,6 +153,9 @@ public class MainActivity extends AppCompatActivity {
             }
             // 如果1、3两个圆之间没有交点
             if (!MathTool.isTwoCircleIntersect(circle1, circle3)) {
+//                if(snackbar != null) snackbar.dismiss();
+//                snackbar.make(myCoordinatorLayout, "Get location FAILED !", Snackbar.LENGTH_INDEFINITE).show();
+//                return;
                 // 尝试增加半径
                 // 如果c3的半径比两者之中任意一个都小
                 if (circle3.r < circle1.r && circle3.r < circle2.r) {
@@ -139,6 +168,9 @@ public class MainActivity extends AppCompatActivity {
             }
             // 如果2、3两个原之间没有交点
             if (!MathTool.isTwoCircleIntersect(circle2, circle3)) {
+//                if(snackbar != null) snackbar.dismiss();
+//                snackbar.make(myCoordinatorLayout, "Get location FAILED !", Snackbar.LENGTH_INDEFINITE).show();
+//                return;
                 // 尝试增加半径
                 // 如果c3的半径比两者之中任意一个都小
                 if (circle3.r < circle1.r && circle3.r < circle2.r) {
@@ -156,16 +188,21 @@ public class MainActivity extends AppCompatActivity {
             MathTool.PointVector2 temp3 = MathTool.getIntersectionPointsOfTwoIntersectCircle(circle3, circle1);
             // 1、2两圆的交点取y > 0 的那个点
             MathTool.Point resultPoint1 = temp1.p1.y > 0 ?
-                    new MathTool.Point(temp1.p1.x, temp1.p1.y) :
+                    new MathTool.Point(temp1.p1.x, temp1.p1.y):
                     new MathTool.Point(temp1.p2.x, temp1.p2.y);
+            Log.d("resultPoint1", temp1.p1.toString() + "  " + temp1.p2.toString());
             // 2、3两圆的交点取两者的均值
+//            MathTool.Point resultPoint2 = new MathTool.Point(
+//                    (temp2.p1.x + temp2.p2.x) / 2,
+//                    (temp2.p1.y + temp2.p2.y) / 2
+//            );
             MathTool.Point resultPoint2 = new MathTool.Point(
-                    (temp2.p1.x + temp2.p2.x) / 2,
-                    (temp2.p1.y + temp2.p2.y) / 2
+                    max(temp2.p1.x, temp2.p2.x),
+                    max(temp2.p1.y, temp2.p2.y)
             );
             // 3、1两圆的交点取x > 0的那个点
             MathTool.Point resultPoint3 = temp3.p1.x > 0 ?
-                    new MathTool.Point(temp3.p1.x, temp3.p1.y) :
+                    new MathTool.Point(temp3.p1.x, temp3.p1.y):
                     new MathTool.Point(temp3.p2.x, temp3.p2.y);
 
             // 求出三个点的中心点
@@ -174,6 +211,8 @@ public class MainActivity extends AppCompatActivity {
                     resultPoint2,
                     resultPoint3
             );
+
+            Log.d("Location", resultPoint1.toString() + "  " + resultPoint2.toString() + "  " + resultPoint3.toString());
 
             // 更新结果显示
 //            Toast.makeText(getApplicationContext(), "Get the location!", Toast.LENGTH_SHORT).show();
@@ -288,6 +327,7 @@ public class MainActivity extends AppCompatActivity {
                 // 如果扫描到了一个新设备
                 // 看他是不是预先设定的那几个设备
                 for (String mac : allowBluetoothDeviceMacs.keySet()) {
+                    Log.d("BL", "get an bl device");
                     // 如果是
                     if (mac.equals(bleDevice.getMac())) {
                         // 获取index
@@ -522,8 +562,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 //        setContentView(R.layout.material_main);
         // Ble初始化
-        BleManager.getInstance()
-                .init(getApplication());
+        BleManager.getInstance().init(getApplication());
 
         // 绑定组件
         bindComponent();

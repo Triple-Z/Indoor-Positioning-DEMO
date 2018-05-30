@@ -1,8 +1,10 @@
 package cn.triplez.demo.indoorpositioning;
 
+import android.util.Log;
+
 public class MathTool {
-    private final static double RSSI_TO_DISTANCE_A = 65;
-    private final static double RSSI_TO_DISTANCE_N = 4;
+    private final static double RSSI_TO_DISTANCE_A = 60;
+    private final static double RSSI_TO_DISTANCE_N = 3.3;
 
     public static class Point {
         public double x;
@@ -68,6 +70,8 @@ public class MathTool {
             double l = getDistanceBetweenTwoPoint(ct1.center, ct2.center);
             // 计算交点与x轴构成的角的余弦
             double cos = (ct1.r * ct1.r + l * l - ct2.r * ct2.r) / (2 * ct1.r * l);
+            if (cos > 1) cos = 0;
+            Log.d("cos", Double.toString(cos));
             // 计算正弦
             double sin = Math.sqrt(1 - cos * cos);
             // 得出坐标
@@ -90,6 +94,8 @@ public class MathTool {
             double l = getDistanceBetweenTwoPoint(ct1.center, ct2.center);
             // 计算交点与y轴构成的叫的余弦
             double cos = (ct1.r * ct1.r + l * l - ct2.r * ct2.r) / (2 * ct1.r * l);
+            if (cos > 1) cos = 0;
+            Log.d("cos", Double.toString(cos));
             // 计算正弦
             double sin = Math.sqrt(1 - cos * cos);
             // 得出坐标
