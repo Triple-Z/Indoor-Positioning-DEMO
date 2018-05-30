@@ -195,7 +195,8 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
 //                Toast.makeText(getApplicationContext(), "Invalid x or y range !", Toast.LENGTH_SHORT).show();
                 if(snackbar != null) snackbar.dismiss();
-                snackbar.make(myCoordinatorLayout, "Invalid x or y range !", Snackbar.LENGTH_SHORT).show();
+                snackbar.make(myCoordinatorLayout, "Invalid x or y range !", Snackbar.LENGTH_LONG).show();
+                return;
             }
 
             /*
@@ -217,9 +218,31 @@ public class MainActivity extends AppCompatActivity {
             coordinateAxisChart.reset();
             coordinateAxisChart.invalidate();
 
-            SinglePoint point = new SinglePoint(new PointF(x_float, y_float));
-            point.setPointColor(Color.RED);
-            coordinateAxisChart.addPoint(point);
+            SinglePoint locPoint = new SinglePoint(new PointF(x_float, y_float));
+            locPoint.setPointColor(Color.RED);
+            coordinateAxisChart.addPoint(locPoint);
+
+            float x_range_float, y_range_float;
+
+            try {
+                x_range_float = (float)Integer.parseInt(roomX.getText().toString());
+                y_range_float = (float)Integer.parseInt(roomY.getText().toString());
+            } catch (Exception e) {
+                if(snackbar != null) snackbar.dismiss();
+                snackbar.make(myCoordinatorLayout, "Invalid x or y range !", Snackbar.LENGTH_LONG).show();
+                return;
+            }
+
+            SinglePoint ble1Point = new SinglePoint(new PointF(0, 0));
+            SinglePoint ble2Point = new SinglePoint(new PointF(x_range_float, 0));
+            SinglePoint ble3Point = new SinglePoint(new PointF(0, y_range_float));
+            ble1Point.setPointColor(Color.GREEN);
+            ble2Point.setPointColor(Color.GREEN);
+            ble3Point.setPointColor(Color.GREEN);
+            coordinateAxisChart.addPoint(ble1Point);
+            coordinateAxisChart.addPoint(ble2Point);
+            coordinateAxisChart.addPoint(ble3Point);
+
             coordinateAxisChart.invalidate();
 
             // 跳出循环
@@ -246,7 +269,8 @@ public class MainActivity extends AppCompatActivity {
             public void onScanFinished(List<BleDevice> scanResultList) {
 //                Toast.makeText(getApplicationContext(), "Finish Scanning!", Toast.LENGTH_SHORT)
 //                        .show();
-                fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.ready)));
+                fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.colorAccent)));
+                fab.setClickable(true);
                 calculate();
             }
 
@@ -254,8 +278,9 @@ public class MainActivity extends AppCompatActivity {
             public void onScanStarted(boolean success) {
 //                Toast.makeText(getApplicationContext(), "Locating...", Toast.LENGTH_SHORT).show();
                 if(snackbar != null) snackbar.dismiss();
-                snackbar.make(myCoordinatorLayout, "Locating...", Snackbar.LENGTH_SHORT).show();
-                fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.waiting)));
+                snackbar.make(myCoordinatorLayout, "Locating...", Snackbar.LENGTH_INDEFINITE).show();
+                fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.disabled)));
+                fab.setClickable(false);
             }
 
             @Override

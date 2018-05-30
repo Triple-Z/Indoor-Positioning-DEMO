@@ -7,4 +7,5 @@
     <color name="success">#009688</color>
     <color name="waiting">#FFEB3B</color>
     <color name="ready">#4CAF50</color>
+    <color name="disabled">#BDBDBD</color>
 </resources>

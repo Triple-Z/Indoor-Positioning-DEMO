@@ -316,6 +316,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="18sp"
+                        android:gravity="center"
                         android:inputType="number"/>
                 </LinearLayout>
 
@@ -337,6 +338,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="18sp"
+                        android:gravity="center"
                         android:inputType="number"/>
                 </LinearLayout>
 
@@ -453,7 +455,6 @@
         android:layout_gravity="end|bottom"
         android:layout_margin="25dp"
         android:src="@android:drawable/ic_menu_mylocation"
-        app:backgroundTint="@color/ready"
         android:clickable="true"
         app:borderWidth="0dp"
         app:pressedTranslationZ="12dp"/>
