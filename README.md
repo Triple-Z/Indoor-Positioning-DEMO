@@ -19,3 +19,7 @@
 ## Copyright
 
 Copyright &copy; 2018 Team 3
+
+## Acknowledge
+
+Greatest thanks to [FlyAndNotDown/BluetoothLocation](https://github.com/FlyAndNotDown/BluetoothLocation) !
