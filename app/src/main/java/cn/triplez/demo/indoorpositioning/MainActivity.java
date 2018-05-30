@@ -4,7 +4,9 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.util.Log;
@@ -67,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView location;
     private CoordinateAxisChart coordinateAxisChart;
     private FloatingActionButton fab;
+    private CoordinatorLayout myCoordinatorLayout;
+    private Snackbar snackbar;
 
 
 
@@ -75,8 +79,10 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < 2; i++) {
             if (!bluetoothReadyStates[i]) {
                 int number = i + 1;
-                Toast.makeText(getApplicationContext(), "Cannot get No." + number + " beacon's RSSI.\n Get location FAILED!",
-                        Toast.LENGTH_LONG).show();
+//                Toast.makeText(getApplicationContext(), "Cannot get No." + number + " beacon's RSSI.\n Get location FAILED!",
+//                        Toast.LENGTH_LONG).show();
+                if(snackbar != null) snackbar.dismiss();
+                snackbar.make(myCoordinatorLayout, "Cannot get No." + number + " beacon's RSSI.\nGet location FAILED!", Snackbar.LENGTH_LONG).show();
                 return;
             }
         }
@@ -170,7 +176,9 @@ public class MainActivity extends AppCompatActivity {
             );
 
             // 更新结果显示
-            Toast.makeText(getApplicationContext(), "Get the location!", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getApplicationContext(), "Get the location!", Toast.LENGTH_SHORT).show();
+            if(snackbar != null) snackbar.dismiss();
+            snackbar.make(myCoordinatorLayout, "Get the location!", Snackbar.LENGTH_LONG).show();
 
             location.setText(resultPoint.toString());
 
@@ -185,7 +193,9 @@ public class MainActivity extends AppCompatActivity {
             try {
                 config.setMax(max(Integer.parseInt(roomX.getText().toString()), Integer.parseInt(roomY.getText().toString())));
             } catch (Exception e) {
-                Toast.makeText(getApplicationContext(), "Invalid x or y range !", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "Invalid x or y range !", Toast.LENGTH_SHORT).show();
+                if(snackbar != null) snackbar.dismiss();
+                snackbar.make(myCoordinatorLayout, "Invalid x or y range !", Snackbar.LENGTH_SHORT).show();
             }
 
             /*
@@ -242,7 +252,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onScanStarted(boolean success) {
-                Toast.makeText(getApplicationContext(), "Locating...", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(), "Locating...", Toast.LENGTH_SHORT).show();
+                if(snackbar != null) snackbar.dismiss();
+                snackbar.make(myCoordinatorLayout, "Locating...", Snackbar.LENGTH_SHORT).show();
                 fab.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.waiting)));
             }
 
@@ -308,6 +320,7 @@ public class MainActivity extends AppCompatActivity {
         coordinateAxisChart = (CoordinateAxisChart)findViewById(R.id.coordinateAxisChart);
 
         fab = (FloatingActionButton)findViewById(R.id.fab);
+        myCoordinatorLayout = (CoordinatorLayout)findViewById(R.id.myCoordinatorLayout);
 
 
 
