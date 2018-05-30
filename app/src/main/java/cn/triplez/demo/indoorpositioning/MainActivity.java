@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
 //                Toast.makeText(getApplicationContext(), "Cannot get No." + number + " beacon's RSSI.\n Get location FAILED!",
 //                        Toast.LENGTH_LONG).show();
                 if(snackbar != null) snackbar.dismiss();
-                snackbar.make(myCoordinatorLayout, "Cannot get No." + number + " beacon's RSSI.\nGet location FAILED!", Snackbar.LENGTH_LONG).show();
+                snackbar.make(myCoordinatorLayout, "Cannot get No." + number + " beacon's RSSI.\nGet location FAILED!", Snackbar.LENGTH_INDEFINITE).show();
                 return;
             }
         }
@@ -195,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
 //                Toast.makeText(getApplicationContext(), "Invalid x or y range !", Toast.LENGTH_SHORT).show();
                 if(snackbar != null) snackbar.dismiss();
-                snackbar.make(myCoordinatorLayout, "Invalid x or y range !", Snackbar.LENGTH_LONG).show();
+                snackbar.make(myCoordinatorLayout, "Invalid x or y range !", Snackbar.LENGTH_INDEFINITE).show();
                 return;
             }
 
