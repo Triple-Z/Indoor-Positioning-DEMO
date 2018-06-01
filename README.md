@@ -8,6 +8,10 @@
 
 > 仅在指定 Testbed 测试通过。
 
+## DEMO
+
+![GIF demonstration](pics/device-2018-06-01-131212.gif)
+
 ## Screenshots
 
 ![invalid](pics/photo_2018-05-30_21-23-26.jpg)
@@ -18,8 +22,13 @@
 
 ## Copyright
 
-Copyright &copy; 2018 Team 3
+[MIT License](LICENSE.md)
 
-## Acknowledge
+Copyright &copy; 2018 [TripleZ](https://github.com/Triple-Z)
 
-Greatest thanks to [FlyAndNotDown/BluetoothLocation](https://github.com/FlyAndNotDown/BluetoothLocation) !
+## Acknowledgement
+
+- [FlyAndNotDown/BluetoothLocation](https://github.com/FlyAndNotDown/BluetoothLocation)
+- [KiBa1215/CoordinateAxisChart](https://github.com/KiBa1215/CoordinateAxisChart)
+
+
